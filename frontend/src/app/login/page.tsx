@@ -14,9 +14,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace("/dashboard");
-    });
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        router.push("/dashboard");
+      }
+    };
+
+    check();
   }, [router]);
 
   async function completeAuth() {
@@ -64,7 +70,7 @@ export default function LoginPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: "https://gbp-auto-reply-tool-7vkgcw8pd-muthutechys-projects.vercel.app/dashboard"
+          redirectTo: "https://gbp-auto-reply-tool.vercel.app/dashboard"
         },
       });
       if (oauthError) throw oauthError;
