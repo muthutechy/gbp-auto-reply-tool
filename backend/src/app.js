@@ -12,6 +12,10 @@ app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", (_req, res) => {
+  res.send("Backend OK");
+});
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "gbp-seo-saas-backend" });
 });
@@ -38,7 +42,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
 }

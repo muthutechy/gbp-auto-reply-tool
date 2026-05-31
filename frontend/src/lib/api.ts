@@ -1,4 +1,4 @@
-import { getUser, getActiveTenantId, clearSession } from "./auth";
+import { getActiveTenantId, clearSession } from "./auth";
 import { supabase } from "./supabase";
 import type {
   Analytics,
@@ -10,14 +10,30 @@ import type {
   Tenant,
 } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-
 class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
   }
+}
+
+function getApiUrl(): string {
+  const url = process.env.NEXT_PUBLIC_API_URL;
+  if (url) return url;
+
+  if (process.env.NODE_ENV === "production") {
+    const msg = "NEXT_PUBLIC_API_URL is not configured";
+    if (typeof window !== "undefined") console.error("[api]", msg);
+    throw new Error(msg);
+  }
+
+  if (typeof window !== "undefined") {
+    console.error(
+      "[api] NEXT_PUBLIC_API_URL is not set — using http://localhost:4000/api (development only)"
+    );
+  }
+  return "http://localhost:4000/api";
 }
 
 function appendTenantParam(urlObj: URL) {
@@ -33,22 +49,52 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = sessionData.session?.access_token;
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const urlObj = new URL(`${API_URL}${path}`);
+  const urlObj = new URL(`${getApiUrl()}${path}`);
   if (!path.startsWith("/auth")) appendTenantParam(urlObj);
   const url = urlObj.toString();
 
-  const res = await fetch(url, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch {
+    throw new ApiError(
+      "Network or CORS error — cannot reach the API. Verify NEXT_PUBLIC_API_URL and backend FRONTEND_URL.",
+      0
+    );
+  }
+
+  const data = await res.json().catch(() => ({}));
 
   if (res.status === 401) {
     clearSession();
     if (typeof window !== "undefined") window.location.href = "/login";
-    throw new ApiError("Unauthorized", 401);
+    throw new ApiError(
+      (data as { error?: string }).error || "Unauthorized — please sign in again",
+      401
+    );
   }
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new ApiError(data.error || res.statusText, res.status);
+  if (res.status === 403) {
+    throw new ApiError(
+      (data as { error?: string }).error || "Forbidden — access denied",
+      403
+    );
   }
+
+  if (res.status >= 500) {
+    throw new ApiError(
+      (data as { error?: string }).error || "Server error — please try again later",
+      res.status
+    );
+  }
+
+  if (!res.ok) {
+    throw new ApiError(
+      (data as { error?: string }).error || res.statusText,
+      res.status
+    );
+  }
+
   return data as T;
 }
 

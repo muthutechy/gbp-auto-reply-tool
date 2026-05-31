@@ -1,5 +1,14 @@
 const { createClient } = require("@supabase/supabase-js");
 
+if (!process.env.SUPABASE_URL) {
+  console.warn("[startup] SUPABASE_URL is not set — database routes will fail at runtime");
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn(
+    "[startup] SUPABASE_SERVICE_ROLE_KEY is not set — database routes will fail at runtime"
+  );
+}
+
 function getSupabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -5,10 +5,14 @@ const { resolveTenant, enforceTenantIsolation } = require("../middleware/tenant.
 
 const router = express.Router();
 
-router.use(authenticate, resolveTenant, enforceTenantIsolation);
+router.use(authenticate, resolveTenant);
+
+// Allow tenant creation before user has tenant_id (Supabase onboarding)
+router.post("/", tenantsController.create);
+
+router.use(enforceTenantIsolation);
 
 router.get("/", tenantsController.list);
-router.post("/", tenantsController.create);
 router.get("/:id", tenantsController.getById);
 router.put("/:id", tenantsController.update);
 router.delete("/:id", requireAdmin, tenantsController.remove);

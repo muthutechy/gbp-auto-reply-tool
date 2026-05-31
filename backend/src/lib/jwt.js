@@ -1,6 +1,14 @@
 const jwt = require("jsonwebtoken");
 
+if (!process.env.JWT_SECRET) {
+  console.warn("[startup] JWT_SECRET is not set — legacy JWT auth will fail at runtime");
+}
+
 function signToken(user) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
   return jwt.sign(
     {
       userId: user.id,
