@@ -64,8 +64,7 @@ export default function LoginPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo:
-            typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+          redirectTo: "https://your-frontend.vercel.app/dashboard"
         },
       });
       if (oauthError) throw oauthError;
