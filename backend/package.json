@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node backend/src/app.js",
     "dev:frontend": "npm run dev --prefix frontend",
-    "start": "node backend/src/app.js",
+    "start": "node src/app.js",
     "cron": "node backend/src/cron/fetchReviews.js",
     "worker": "node backend/src/workers/reviewWorker.js",
     "build:frontend": "npm run build --prefix frontend",

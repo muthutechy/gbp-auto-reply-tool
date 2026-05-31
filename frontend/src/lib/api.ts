@@ -1,4 +1,5 @@
-import { getToken, getUser, getActiveTenantId, clearSession } from "./auth";
+import { getUser, getActiveTenantId, clearSession } from "./auth";
+import { supabase } from "./supabase";
 import type {
   Analytics,
   AuditLog,
@@ -25,9 +26,11 @@ function appendTenantParam(urlObj: URL) {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const urlObj = new URL(`${API_URL}${path}`);
@@ -50,6 +53,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  // Legacy endpoints (no longer used by Supabase login UI)
   login(email: string, password: string) {
     return request<AuthResponse>("/auth/login", {
       method: "POST",
@@ -102,6 +106,13 @@ export const api = {
 
   getGoogleAuthUrl() {
     return request<{ url: string }>("/google/auth");
+  },
+
+  ensureTenant(payload?: Partial<Tenant>) {
+    return request<{ tenant: Tenant }>("/tenants", {
+      method: "POST",
+      body: JSON.stringify(payload || {}),
+    });
   },
 
   getAuditLogs(limit = 100) {

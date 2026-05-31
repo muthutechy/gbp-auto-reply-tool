@@ -21,15 +21,21 @@ async function getTenantById(id) {
 }
 
 async function createTenant(payload, actor) {
-  if (actor.role !== "admin") {
-    throw createError("Admin access required", 403);
+  // User already linked to a tenant (non-admin)
+  if (actor.tenantId && actor.role !== "admin") {
+    return getTenantById(actor.tenantId);
   }
+
+  const businessName =
+    payload.business_name ||
+    payload.name ||
+    (actor.email ? actor.email.split("@")[0] : "My Business");
 
   const { data, error } = await supabase()
     .from("tenants")
     .insert({
-      business_name: payload.business_name,
-      primary_keyword: payload.primary_keyword,
+      business_name: businessName,
+      primary_keyword: payload.primary_keyword || "service",
       secondary_keywords: payload.secondary_keywords ?? [],
       location: payload.location ?? null,
       tone: payload.tone ?? "friendly",
@@ -39,6 +45,16 @@ async function createTenant(payload, actor) {
     .single();
 
   if (error) throw fromSupabaseError(error);
+
+  // Link user → tenant (Supabase Auth clients)
+  if (actor.userId && actor.role !== "admin") {
+    const { error: userErr } = await supabase()
+      .from("users")
+      .update({ tenant_id: data.id })
+      .eq("id", actor.userId);
+    if (userErr) throw fromSupabaseError(userErr);
+  }
+
   return data;
 }
 

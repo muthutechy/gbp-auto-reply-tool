@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(authenticate, resolveTenant, enforceTenantIsolation);
 
 router.get("/", tenantsController.list);
-router.post("/", requireAdmin, tenantsController.create);
+router.post("/", tenantsController.create);
 router.get("/:id", tenantsController.getById);
 router.put("/:id", tenantsController.update);
 router.delete("/:id", requireAdmin, tenantsController.remove);

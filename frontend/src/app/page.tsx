@@ -2,13 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(isAuthenticated() ? "/dashboard" : "/login");
+    supabase.auth.getUser().then(({ data }) => {
+      router.replace(data.user ? "/dashboard" : "/login");
+    });
   }, [router]);
 
   return (
