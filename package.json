@@ -1,0 +1,33 @@
+{
+  "name": "gbp-auto-replay-tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node backend/src/app.js",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "start": "node backend/src/app.js",
+    "cron": "node backend/src/cron/fetchReviews.js",
+    "worker": "node backend/src/workers/reviewWorker.js",
+    "build:frontend": "npm run build --prefix frontend",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "axios": "^1.16.1",
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.77.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "googleapis": "^172.0.0",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
+    "openai": "^6.39.0"
+  }
+}
