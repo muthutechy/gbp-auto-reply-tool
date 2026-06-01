@@ -14,15 +14,27 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const check = async () => {
+    let mounted = true;
+
+    async function check() {
       const { data } = await supabase.auth.getSession();
 
-      if (data.session) {
-        router.push("/dashboard");
+      if (!mounted) return;
+
+      if (data.session?.user) {
+        const profile = await bootstrapAuthSession().catch(() => null);
+
+        if (profile) {
+          router.replace("/dashboard");
+        }
       }
-    };
+    }
 
     check();
+
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
   async function completeAuth() {
