@@ -28,8 +28,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     boot();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) router.replace("/login");
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/login");
+      }
     });
 
     return () => {
