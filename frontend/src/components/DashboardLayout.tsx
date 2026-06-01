@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearSession, getUser, getActiveTenantId, setActiveTenantId } from "@/lib/auth";
+import { resetAuthBootstrap } from "@/lib/authBootstrapState";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import type { Tenant } from "@/types";
@@ -45,7 +46,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   async function logout() {
     await supabase.auth.signOut();
     clearSession();
-    router.push("/login");
+    resetAuthBootstrap();
+    router.replace("/login");
   }
 
   function handleTenantChange(tenantId: string) {

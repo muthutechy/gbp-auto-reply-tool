@@ -8,9 +8,19 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      router.replace(data.user ? "/dashboard" : "/login");
-    });
+    let mounted = true;
+
+    async function route() {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      router.replace(data.session ? "/dashboard" : "/login");
+    }
+
+    route();
+
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
   return (

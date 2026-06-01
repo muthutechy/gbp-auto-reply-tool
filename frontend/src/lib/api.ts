@@ -1,4 +1,5 @@
 import { getActiveTenantId, clearSession } from "./auth";
+import { resetAuthBootstrap } from "./authBootstrapState";
 import { supabase } from "./supabase";
 import type {
   Analytics,
@@ -67,7 +68,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (res.status === 401) {
     clearSession();
-    if (typeof window !== "undefined") window.location.href = "/login";
+    resetAuthBootstrap();
+    await supabase.auth.signOut();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      window.location.replace("/login");
+    }
     throw new ApiError(
       (data as { error?: string }).error || "Unauthorized — please sign in again",
       401

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { bootstrapAuthSession } from "@/lib/authSession";
 import { supabase } from "@/lib/supabase";
@@ -13,34 +13,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function check() {
-      const { data } = await supabase.auth.getSession();
-
-      if (!mounted) return;
-
-      if (data.session?.user) {
-        const profile = await bootstrapAuthSession().catch(() => null);
-
-        if (profile) {
-          router.replace("/dashboard");
-        }
-      }
-    }
-
-    check();
-
-    return () => {
-      mounted = false;
-    };
-  }, [router]);
-
   async function completeAuth() {
     const profile = await bootstrapAuthSession();
     if (!profile) throw new Error("Could not establish session");
-    router.push("/dashboard");
+    router.replace("/dashboard");
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -82,7 +58,7 @@ export default function LoginPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: "https://gbp-auto-reply-tool.vercel.app/dashboard"
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       if (oauthError) throw oauthError;
